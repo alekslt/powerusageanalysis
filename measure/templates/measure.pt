@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" xmlns:tal="http://xml.zope.org/namespaces/tal">
+<head>
+  <title>Power Usage Analysis</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+  <meta name="keywords" content="python web application" />
+  <meta name="description" content="pyramid web application" />
+  <link rel="shortcut icon" href="${request.static_url('measure:static/favicon.ico')}" />
+  <link rel="stylesheet" href="${request.static_url('measure:static/pylons.css')}" type="text/css" media="screen" charset="utf-8" />
+  <link rel="stylesheet" href="http://static.pylonsproject.org/fonts/nobile/stylesheet.css" media="screen" />
+  <link rel="stylesheet" href="http://static.pylonsproject.org/fonts/neuton/stylesheet.css" media="screen" />
+  <link type="text/css" rel="stylesheet" href="${request.static_url('measure:static/rickshaw/rickshaw.min.css')}">
+  <script src="${request.static_url('measure:static/rickshaw/vendor/d3.min.js')}"></script>
+  <script src="${request.static_url('measure:static/rickshaw/vendor/d3.layout.min.js')}"></script>
+  <script src="${request.static_url('measure:static/rickshaw/rickshaw.js')}"></script>
+  <!--[if lte IE 6]>
+  <link rel="stylesheet" href="${request.static_url('measure:static/ie6.css')}" type="text/css" media="screen" charset="utf-8" />
+  <![endif]-->
+  <style>
+#top {
+height: 480px;
+background: #FFEDCC; 
+}
+
+#chart_container {
+        position: relative;
+        font-family: Arial, Helvetica, sans-serif;
+}
+#chart {
+        position: relative;
+        left: 40px;
+}
+#y_axis {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+}
+.rickshaw_graph .x_tick {
+  bottom: -25px;
+}
+
+.topgraph {
+  padding-top: 40px;
+}
+
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="top">
+      <div class="topgraph">
+          <div>
+            <div id="chart_container">
+              <div id="y_axis"></div>
+              <div id="chart"></div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <div id="middle">
+      <div class="middle">
+      </div>
+    </div>
+        <p class="app-welcome">
+        </p>
+        <pre>
+        <p class="align-left" tal:repeat="txt log" tal:omit-tag=""><span tal:replace="txt" /></p>
+      </pre>
+    <!--
+    <div id="bottom">
+      <div class="bottom">
+        <div id="left" class="align-right">
+          <h2></h2>
+        </div>
+        <div id="right" class="align-left">
+          <h2></h2>
+        </div>
+      </div>
+    </div>
+  -->
+  </div>
+  <!--<div id="footer">
+    <div class="footer">.</div>
+  </div>-->
+</body>
+  <script>
+    var graph = new Rickshaw.Graph( {
+            element: document.querySelector("#chart"),
+            width: 1200,
+            height: 420,
+            series: [ {
+                    name: 'Watt usage',
+                    data: ${wattdata}, 
+                    color: 'steelblue'
+            } ]
+    } );
+
+    var x_axis = new Rickshaw.Graph.Axis.Time( { graph: graph } );
+
+    var y_axis = new Rickshaw.Graph.Axis.Y( {
+            graph: graph,
+            orientation: 'left',
+            tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+            element: document.getElementById('y_axis'),
+    } );
+
+  var hoverDetail = new Rickshaw.Graph.HoverDetail( {
+    graph: graph,
+      formatter: function(series, x, y, formX, formY, pointinfo) {
+        var date = '<span class="date">' + x + ' - ' + new Date(x * 1000).toUTCString() + '</span>';
+        var swatch = '<span class="detail_swatch" style="background-color: ' + series.color + '"></span>';
+
+        var consumers = "";
+        for (var i = 0; i < pointinfo.value.info.length; i++)
+        {
+          var cons = pointinfo.value.info[i];
+          // new Date(cons.start * 1000).toUTCString()
+          consumers += '<span class="date">Consumer started ' + cons.start + ' Using ' + cons.watt + ' watts</span><br>';
+        }
+        var infotxt = '<span class="date">' + pointinfo.value.info + '</span>';
+
+
+        var content = swatch + series.name + ": " + parseInt(y) + '<br>' + date + '<br>' + consumers;
+        return content;
+    }
+  } );
+    graph.render();
+
+  </script>
+</html>
